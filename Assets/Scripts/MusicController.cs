@@ -15,7 +15,7 @@ public class MusicController : MonoBehaviour
 
     public static MusicController Instance;
 
-    AudioSource audioSource;
+    AudioSource[] audioSources;
     [SerializeField] List<Track> tracks;
     Dictionary<string, Track> trackDict = new Dictionary<string, Track>();
 
@@ -34,23 +34,28 @@ public class MusicController : MonoBehaviour
             trackDict[track.tag] = track;
         }
 
-        audioSource = GetComponent<AudioSource>();
+        audioSources = GetComponents<AudioSource>();
     }
     protected void Start()
     {
-        Timing.RunCoroutine(_PlayTrack("Ice"), Segment.LateUpdate);
+        PlayTrack("Menu");
     }
 
-    public IEnumerator<float> _PlayTrack(string tag)
+    public void PlayTrack(string tag)
     {
+        audioSources[1].clip = trackDict[tag].loop;
+        audioSources[1].loop = true;
+
         if (trackDict[tag].intro != null)
         {
-            audioSource.clip = trackDict[tag].intro;
-            audioSource.Play();
-            yield return Timing.WaitForSeconds(trackDict[tag].intro.length);
-        }
+            audioSources[0].clip = trackDict[tag].intro;
+            audioSources[0].loop = false;
 
-        audioSource.clip = trackDict[tag].loop;
-        audioSource.Play();
+            audioSources[1].PlayDelayed(trackDict[tag].intro.length);
+            audioSources[0].Play();
+        } else
+        {
+            audioSources[1].Play();
+        }
     }
 }
